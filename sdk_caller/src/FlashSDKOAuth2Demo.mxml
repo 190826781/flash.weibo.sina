@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" minWidth="955" minHeight="600"
+			   creationComplete="app_creationCompleteHandler(event)">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.sina.microblog.MicroBlog;
+			import com.sina.microblog.events.MicroBlogErrorEvent;
+			import com.sina.microblog.events.MicroBlogEvent;
+			
+			import mx.events.FlexEvent;
+			
+			private var _mb:MicroBlog
+			
+			protected function app_creationCompleteHandler(event:FlexEvent):void
+			{
+				_mb = new MicroBlog();
+				_mb.consumerKey = "2555892877";
+				_mb.consumerSecret = "c10c9074c6ca10c4d9cdffb013c6cee6";
+				_mb.proxyURI = "http://simplecpp.sinaapp.com/proxy.php";
+			}
+			
+			protected function btnLogin_clickHandler(event:MouseEvent):void
+			{
+				_mb.addEventListener(MicroBlogEvent.LOGIN_RESULT, onLoginResult);
+				_mb.login();
+			}
+			
+			protected function onLoginResult(e:MicroBlogEvent):void
+			{
+				_mb.removeEventListener(MicroBlogEvent.LOGIN_RESULT, onLoginResult);
+				trace(e.result["access_token"] + "::" + e.result["expires_in"] + "::" + e.result["refresh_token"]);  
+				testAPI();
+			}
+			
+			private function testAPI():void
+			{
+				_mb.addEventListener("callWeiboApiResult", callWeiboApiResult);
+				_mb.addEventListener("callWeiboApiError", callWeiboApiError);
+				_mb.callWeiboAPI("2/account/get_uid", null, "GET", "callWeiboApiResult", "callWeiboApiError"); 
+			}
+			
+			/**
+			 * 成功调用api
+			 */
+			private function callWeiboApiResult(e:MicroBlogEvent):void
+			{
+				trace(e.result.uid); //按照线上文档返回格式格式： {"uid":"3456676543"}
+				text1.text=e.result.uid;
+			}
+			
+			/**
+			 * 调用api失败，获取服务器返回的错误信息
+			 */
+			private function callWeiboApiError(e:MicroBlogErrorEvent):void
+			{
+				trace(e.message);
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<s:Button label="Login" id="btnLogin" click="btnLogin_clickHandler(event)"/>
+	<s:Label x="323" y="143" text="" width="204" height="34" id="text1"/>
+	
+</s:Application>
